@@ -22,6 +22,8 @@ class BuildCMake(build_ext):
         cwd = os.getcwd()
         build_temp = os.path.join(cwd, self.build_temp)
         os.makedirs(build_temp, exist_ok=True)
+        print("making the dir")
+        os.makedirs(self.build_lib, exist_ok=True)
 
         cmake_args = ["cmake", "-DPYTHON=ON", ext.sourcedir]
         build_args = ["--config", "Release", "--", "-j4"]
