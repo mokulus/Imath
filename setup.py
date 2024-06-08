@@ -1,4 +1,5 @@
 import os
+import re
 import shutil
 import subprocess
 from pathlib import Path
@@ -34,12 +35,20 @@ class BuildCMake(build_ext):
             subprocess.check_call(["cmake", "--build", "."] + build_args)
         os.chdir(cwd)
 
-        # Copy the generated imath.so to site-packages
-        shutil.copy(os.path.join(build_temp, "python3_11/imath.so"), self.build_lib)
-        shutil.copy(
-            os.path.join(build_temp, "python3_11/imathnumpy.so"), self.build_lib
-        )
-
+        regex = re.compile(r"python3_\d+")
+        for dir in [f.name for f in os.scandir(build_temp) if f.is_dir()]:
+            if regex.match(dir):
+                # Copy the generated imath.so to site-packages
+                imath_result = shutil.copy(
+                    os.path.join(build_temp, dir, "imath.so"), self.build_lib
+                )
+                if not Path(imath_result).is_file():
+                    raise ValueError(f"unable to find {imath_result}, check if you have boost python installed")
+                imathnumpy_result = shutil.copy(
+                    os.path.join(build_temp, dir, "imathnumpy.so"), self.build_lib
+                )
+                if not Path(imathnumpy_result).is_file():
+                    raise ValueError(f"unable to find {imathnumpy_result}, check if you have numpy headers installed")
 
 setup(
     name="imath",
